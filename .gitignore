@@ -1,0 +1,11 @@
+# Dataset 
+data/
+dataset/
+final_dataset/
+augmented_data/
+
+
+# Ignore Python cache files
+*.pyc
+__pycache__/
+
