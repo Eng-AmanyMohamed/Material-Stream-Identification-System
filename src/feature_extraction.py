@@ -28,8 +28,6 @@ def exctract_feature_vectors(data_path, classes ):
     X = []
     class_num = 0
     for c in classes:
-        print(f"\n Ectracting: {c}")
-
         original_class_path = os.path.join(data_path, c)
         if not os.path.exists(original_class_path):
             print(f"Folder not found: {original_class_path}")
