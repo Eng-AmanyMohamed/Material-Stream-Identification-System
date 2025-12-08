@@ -23,7 +23,6 @@ def extract_features_for_image(image_path):
 
 
 def exctract_feature_vectors(data_path, classes ):
-    os.makedirs(data_path, exist_ok=True)
     y = []
     X = []
     class_num = 0
@@ -47,6 +46,6 @@ def exctract_feature_vectors(data_path, classes ):
     return X, y
 
 
-X , y = exctract_feature_vectors("data/augmented_dataset" , ["paper", "plastic", "metal", "glass", "cardboard", "trash"])
+X, y = exctract_feature_vectors("data/augmented_dataset" , ["paper", "plastic", "metal", "glass", "cardboard", "trash"])
 print(X.shape)
 print(y.shape)
