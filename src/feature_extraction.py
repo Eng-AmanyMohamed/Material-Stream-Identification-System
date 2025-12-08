@@ -46,6 +46,6 @@ def exctract_feature_vectors(data_path, classes ):
     return X, y
 
 
-X, y = exctract_feature_vectors("data/augmented_dataset" , ["paper", "plastic", "metal", "glass", "cardboard", "trash"])
+X, y = exctract_feature_vectors("data/augmented_dataset" , ["glass", "paper", "cardboard", "plastic", "metal", "trash"])
 print(X.shape)
 print(y.shape)
