@@ -5,7 +5,6 @@ final_dataset/
 augmented_data/
 augmented_dataset
 
-
 # Ignore Python cache files
 *.pyc
 __pycache__/
