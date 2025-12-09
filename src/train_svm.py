@@ -1,6 +1,6 @@
 import numpy as np
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, classification_report
 from models.svm_model import SVMModel
 from src.feature_extraction import exctract_feature_vectors
 
@@ -28,6 +28,8 @@ y_pred = svm.predict(X_val)
 acc = accuracy_score(y_val, y_pred)
 
 print(f"\nValidation Accuracy: {acc:.4f}")
+print("\nClassification Report:")
+print(classification_report(y_val, y_pred, target_names=classes))
 
 # Step 6 — Save trained model
 svm.save("models/svm_model.pkl")
