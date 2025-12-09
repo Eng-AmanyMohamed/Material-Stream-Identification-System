@@ -52,5 +52,5 @@ def exctract_feature_vectors(data_path, classes ):
 
 
 X, y = exctract_feature_vectors("data/augmented_dataset" ,["glass", "paper", "cardboard", "plastic", "metal", "trash"])
-print(X.shape)
-print(y.shape)
+# print(X.shape)
+# print(y.shape)
