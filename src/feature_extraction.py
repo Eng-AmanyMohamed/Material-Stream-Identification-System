@@ -6,20 +6,25 @@ from skimage.feature import hog
 
 def extract_features_for_image(image_path):
    image = cv2.imread(image_path)
-   image = cv2.resize(image, (128, 128))
+   image = cv2.resize(image, (64, 64))
 
    gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
    hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
-   HOG_features = hog(gray_image, orientations=9, pixels_per_cell=(16, 16), cells_per_block=(2, 2) ,block_norm='L2-Hys')
-   hist_HSV_features = cv2.calcHist([hsv_image],[0, 1, 2],None, [6,6,6], [0,180, 0,256, 0,256] ).flatten()
+    # HOG (Histogram of Oriented Gradients):Captures shape and edge structure — critical for distinguishing materials like glass vs metal
+   HOG_features = hog(gray_image, orientations=12, pixels_per_cell=(16, 16), cells_per_block=(2, 2) ,block_norm='L2-Hys')
+
+    # HSV Color Histogram ----------
+    # Encodes global color distribution — helps differentiate plastic (often colorful) from paper/metal
+    # Converts image to HSV (Hue, Saturation, Value) — better than RGB for material color under varying lighting.
+   hist_HSV_features = cv2.calcHist([hsv_image],[0, 1, 2],None, [8,8,8], [0,180, 0,256, 0,256] ).flatten()
+
+   #Local Binary Pattern (LBP) Captures fine-grained texture ( smooth glass vs fibrous cardboard)
    LPb = local_binary_pattern(gray_image,P=6 , R=1 , method='uniform')
    (LPb_hist_freatures ,_ ) = np.histogram(LPb.ravel(),bins=np.arange(0,29) , range=(0, 58) )
    LPb_hist_freatures = (LPb_hist_freatures.astype('float')) / (LPb_hist_freatures.sum() +1e-7)
 
    return np.hstack([HOG_features , hist_HSV_features , LPb_hist_freatures])
-
-
 
 
 def exctract_feature_vectors(data_path, classes ):
@@ -46,6 +51,6 @@ def exctract_feature_vectors(data_path, classes ):
     return X, y
 
 
-X, y = exctract_feature_vectors("data/augmented_dataset" , ["glass", "paper", "cardboard", "plastic", "metal", "trash"])
+X, y = exctract_feature_vectors("data/augmented_dataset" ,["glass", "paper", "cardboard", "plastic", "metal", "trash"])
 print(X.shape)
 print(y.shape)
