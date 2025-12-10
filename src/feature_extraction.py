@@ -26,6 +26,9 @@ def extract_features_for_image(image_path):
 
    return np.hstack([HOG_features , hist_HSV_features , LPb_hist_freatures])
 
+def extract_feature_vector_single(image_path):
+    features = extract_features_for_image(image_path)
+    return features.reshape(1, -1)
 
 def exctract_feature_vectors(data_path, classes ):
     y = []

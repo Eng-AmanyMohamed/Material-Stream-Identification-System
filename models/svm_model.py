@@ -1,8 +1,9 @@
 import joblib
 from sklearn.svm import SVC
+import numpy as np
 
 class SVMModel:
-    def __init__(self, kernel="rbf", C=1.0, gamma="scale"):
+    def __init__(self, kernel="rbf", C=10, gamma="scale"):
         """
         Initialize SVM classifier.
         """
@@ -44,3 +45,19 @@ class SVMModel:
         """
         self.model = joblib.load(path)
         print(f"SVM model loaded from {path}")
+   
+
+    
+    def predict_with_unknown(self, X, threshold=0.55):
+        """
+        Predict class OR 'Unknown' depending on confidence.
+        """
+        probs = self.model.predict_proba(X)[0]
+        max_prob = max(probs)
+        best_class = probs.argmax()
+
+        if max_prob < threshold:
+            return "Unknown", max_prob
+
+        return best_class, max_prob
+    
