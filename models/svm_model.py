@@ -13,6 +13,8 @@ class SVMModel:
             gamma=gamma,
             probability=True  # needed for Unknown class thresholding
         )
+    def set_model(self, model):
+        self.model = model
 
     def train(self, X_train, y_train):
         """

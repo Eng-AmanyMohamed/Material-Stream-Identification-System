@@ -18,7 +18,7 @@ X_train, X_val, y_train, y_val = train_test_split(
 )
 
 # Step 3 — Create SVM model
-svm = SVMModel(kernel="rbf", C=10, gamma="scale")
+svm = SVMModel(kernel="rbf", C=50, gamma="scale")
 
 # Step 4 — Train
 svm.train(X_train, y_train)
@@ -33,3 +33,4 @@ print(classification_report(y_val, y_pred, target_names=classes))
 
 # Step 6 — Save trained model
 svm.save("models/svm_model.pkl")
+
