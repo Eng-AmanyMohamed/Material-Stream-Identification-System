@@ -1,6 +1,13 @@
 import os
-import cv2
+os.environ['PYTHONHASHSEED'] = '0'
+
+import numpy as np
+np.random.seed(42)
+
 import random
+random.seed(42)
+
+import cv2
 from skimage import transform, exposure
 import numpy as np
 
@@ -51,8 +58,8 @@ for c in classes:
             print(f"Corrupted image:{valid_image}")
             continue    
     
-        # 1- rotation by some angle between -20 and 20
-        angle = random.randint(-20,20)
+        # 1- rotation by some angle between -15 and 15
+        angle = random.randint(-15,15)
         img = transform.rotate(img,angle,resize=False , preserve_range=True).astype(np.uint8)
         
         # 2- flipping image horizontally
@@ -60,11 +67,11 @@ for c in classes:
             img = cv2.flip(img,1)
         
         # 3- adjust lighting
-        gamma = random.uniform(0.7,1.3)
+        gamma = random.uniform(0.8,1.2)
         img = exposure.adjust_gamma(img,gamma)
         
         # 4- change size (resize)
-        scale = random.uniform(0.9,1.1)
+        scale = random.uniform(0.95,1.05)
         h, w = img.shape[:2]
         new_h, new_w = int(h*scale),int(w*scale)
         img = cv2.resize(img,(new_w, new_h))
