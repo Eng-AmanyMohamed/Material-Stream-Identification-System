@@ -22,7 +22,12 @@ def classify_frame_svm(frame, model ,classes  ):
         if feature_vector is None:
            label = 'no features found'
         else:
-            label = classes[model.predict(feature_vector.reshape(1, -1))[0]]
+
+            prediction, _ = model.predict_with_unknown(feature_vector.reshape(1, -1))
+            if isinstance(prediction, str):
+                label = prediction
+            else:
+                label = classes[prediction]
 
     except Exception as e:
         print(f"error classifying frame: {e}")
@@ -62,7 +67,8 @@ def main():
         return
 
    
-    classes = ["glass", "paper", "cardboard", "plastic", "metal", "trash"]
+    classes = ["glass", "paper", "cardboard", "plastic", "metal", "trash","unknown"]
+
     choise = path_or_frame_choice()
 
     while choise in ("1","2"):
