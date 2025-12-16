@@ -72,7 +72,7 @@ python src/realtime_app.py
 
 - Data Augmentation (rotation, flip, gamma, scaling)
 - Balanced dataset (~500 images per class)
-- Feature Extraction using 768-D color histograms  
+- Feature Extraction using CNN model
 - SVM (RBF) & k-NN (distance-weighted)
 - Unknown class rejection if confidence < 80%
 - Real-time OpenCV camera deployment  
