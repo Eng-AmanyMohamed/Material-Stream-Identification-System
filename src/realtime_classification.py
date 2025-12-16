@@ -2,126 +2,97 @@ import cv2
 import numpy as np
 import os
 import sys
+from unknown_logic import predict_with_rejection 
+import joblib
 
 
-# Ensure we can import from src and models by adding project root to path
-# This handles running the script from src/ or from project root
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.abspath(os.path.join(current_dir, '..'))
 if project_root not in sys.path:
     sys.path.append(project_root)
 
-from models.svm_model import SVMModel
-from src.feature_extraction import extract_features_from_frame, extract_feature_frame_single
-def classify_frame_svm(frame, model ,classes  ):
-    if frame is None: 
-        return False
-    display = cv2.resize(frame, (640, 480))
-    try: 
-        feature_vector = extract_features_from_frame(display)
-        if feature_vector is None:
-           label = 'no features found'
-        else:
+from feature_extraction import extract_features_from_frame
 
-            prediction, _ = model.predict_with_unknown(feature_vector.reshape(1, -1))
-            if isinstance(prediction, str):
-                label = prediction
-            else:
-                label = classes[prediction]
+# Load model pipeline
+MODEL_PATH = os.path.join(project_root, "models", "svm_model.pkl")
+if not os.path.exists(MODEL_PATH):
+    print(f"Error: Model not found at {MODEL_PATH}")
+    print("Please run 'python src/train_svm.py' first.")
+    exit(1)
 
-    except Exception as e:
-        print(f"error classifying frame: {e}")
-        label = 'not classified'
-    
-    # Display the label on the frame
-    cv2.putText(display, label, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-    cv2.imshow("Real-time Classification", display)
+pipeline = joblib.load(MODEL_PATH)
+model = pipeline["model"]
+scaler = pipeline["scaler"]
+classes = pipeline["classes"]  + ["Unknown"]
+threshold = pipeline["rejection_threshold"]
 
-    return label
-def path_or_frame_choice():
-    print("=== Choose Mode ===")
+def classify_frame(frame):
+    """Returns (label, confidence)"""
+    if frame is None:
+        return "Invalid Frame", 0.0
+
+    # Extract features
+    feat = extract_features_from_frame(frame)
+    if feat is None:
+        return "No Features", 0.0
+
+    # Preprocess
+    feat = feat.reshape(1, -1)
+    feat = scaler.transform(feat)
+
+    # Predict
+    pred_id, conf = predict_with_rejection(model, feat, threshold=threshold)
+    label = classes[pred_id]  # classes[6] = "Unknown"
+
+    return label, conf
+
+def main():
+    print("=== Real-Time Waste Classifier ===")
     print("1. Live Camera")
     print("2. Image File")
-    print("3. Stop")
+    print("3. Exit")
 
-    choice = input("enter your choice (1 or 2): ").strip()
-    return choice 
-def main():
-    print
-    # intialize the model
-    svm = SVMModel()
-    model_path = os.path.join(project_root, "models", "svm_model.pkl")
-    
-    if not os.path.exists(model_path):
-        print(f"error: Model file not found at {model_path}")
-        print("please train the model first using 'src/train_svm.py' or ensure the file exists.")
-        return
-    else :
-        print(f"model file found at {model_path}")
-        print("loading model...")
-
-    try:
-        svm.load(model_path)
-    except Exception as e:
-        print(f"error loading model: {e}")
-        return
-
-   
-    classes = ["glass", "paper", "cardboard", "plastic", "metal", "trash","unknown"]
-
-    choise = path_or_frame_choice()
-
-    while choise in ("1","2"):
-        if choise == "1":
-            # starting the camera 
+    while True:
+        choice = input("\nEnter choice (1/2/3): ").strip()
+        if choice == "1":
+            # Live camera
             cap = cv2.VideoCapture(0)
             if not cap.isOpened():
-                print("Error: Could not open camera.")
-                return
-            else :
-                print("camera opened successfully.")
+                print("Cannot open camera.")
+                continue
 
-            print("starting real-time classification. press 'q' to exit.")
-        #take input from user (real time loop)
-            try: 
-                while True:
-                    #1. capture the frame 
-                    ref, frame = cap.read() 
-                    if not ref or frame is None:
-                        print("failed to capture the frame , please reopen the camera")
-                        break
-                    if cv2.waitKey(1) & 0xFF == ord('q'): #very important to check keyboard settings 
-                        break
-                    (h, w, _) = frame.shape
-                    text = 'press q to quit'
-                    (text_width, text_height), baseline = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, 1, 2)
-                    x = w - text_width - 10
-                    y = h - text_height - 10
-                    cv2.putText(frame, text, (x,y), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+            print("Press 'q' to quit.")
+            while True:
+                ret, frame = cap.read()
+                if not ret:
+                    break
 
-                    if not classify_frame_svm(frame, svm ,classes  ):
-                        break
-                    
-            finally: 
-                cap.release()
-                cv2.destroyAllWindows()
-        elif choise == "2":
-            
-            image_path = input("enter the path of the image: ")
-            if not os.path.exists(image_path):
-                print(f"Error: File not found at {image_path}")
-                return
-            image = cv2.imread(image_path)
+                label, conf = classify_frame(frame)
+                color = (0, 0, 255) if label == "Unknown" else (0, 255, 0)
+                cv2.putText(frame, f"{label} ({conf:.2f})", (10, 30),
+                            cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
+                cv2.imshow("Waste Classifier", frame)
 
-            label = classify_frame_svm(image, svm ,classes  )
-            print(f"predicted label: {label}")
-        
-        choise = path_or_frame_choice()
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
 
-        
+            cap.release()
+            cv2.destroyAllWindows()
 
+        elif choice == "2":
+            path = input("Enter image path: ").strip()
+            if not os.path.exists(path):
+                print("File not found.")
+                continue
+            img = cv2.imread(path)
+            label, conf = classify_frame(img)
+            print(f"Prediction: {label} (Confidence: {conf:.2f})")
 
-
+        elif choice == "3":
+            print("Goodbye!")
+            break
+        else:
+            print("Invalid choice.")
 
 if __name__ == "__main__":
     main()
