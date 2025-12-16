@@ -1,4 +1,3 @@
-
 import os
 import numpy as np
 import pickle
@@ -6,28 +5,28 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split, StratifiedKFold, GridSearchCV
 from sklearn.metrics import accuracy_score, classification_report
-from sklearn.decomposition import PCA
-from feature_extraction import exctract_feature_vectors
+import joblib
+from feature_extraction import extract_features_from_dataset
 
+
+# Settings
 DATA_PATH = "data/augmented_dataset"
-CLASSES = ["glass", "paper", "cardboard", "plastic", "metal", "trash"]  # IDs 0–5
-SAVE_MODEL_PATH = "models/knn_model.pkl"
-os.makedirs("models", exist_ok=True)
+CLASSES = ["glass", "paper", "cardboard", "plastic", "metal", "trash"]
+MODEL_DIR = "models"
+os.makedirs(MODEL_DIR, exist_ok=True)
 
-# 1. Load & Extract Features
-print("Extracting features from augmented dataset...")
-X, y = exctract_feature_vectors(DATA_PATH, CLASSES)
-print(f" Features shape: {X.shape}, Labels shape: {y.shape}")
+# 1. Load features
+print("Extracting features using MobileNetV2...")
+X, y = extract_features_from_dataset(DATA_PATH, CLASSES)
+print(f"Features shape: {X.shape}")
 
-# 2. Preprocessing: Standardization
+# 2. Preprocessing
 scaler = StandardScaler()
 X_scaled = scaler.fit_transform(X)
-pca = PCA(n_components=100)  # Keep 100 principal components
-X_pca = pca.fit_transform(X_scaled)
 
 
-# 3. Train/Test Split
-X_train, X_test, y_train, y_test = train_test_split(X_pca, y, test_size=0.2, random_state=42, stratify=y)
+# 3. Split
+X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42, stratify=y)
 
 #  4. Hyperparameter Tuning for k-NN
 
@@ -51,40 +50,26 @@ X_train, X_test, y_train, y_test = train_test_split(X_pca, y, test_size=0.2, ran
 
 
 # Use BEST PARAMETERS found during tuning
-# 5. create KNN model
-best_knn = KNeighborsClassifier(n_neighbors=3,weights='distance', metric='euclidean')
 
-# 6. Train  KNN model
-best_knn.fit(X_train, y_train)
+# 5. Train k-NN
+knn = KNeighborsClassifier(n_neighbors=3, weights="distance", metric='euclidean')
+knn.fit(X_train, y_train)
 
-# 7. validate model
+# 6. Evaluate
+y_pred = knn.predict(X_test)
 
-y_pred = best_knn.predict(X_test)
-val_acc = accuracy_score(y_test, y_pred)
-print(f"\n Validation Accuracy: {val_acc:.4f}")
-print("\n Classification Report :")
-print(classification_report(y_test, y_pred, target_names=CLASSES))
+acc = accuracy_score(y_test, y_pred)
+print(f"\n k-NN Validation Accuracy: {acc:.4f}")
+print("\n" + classification_report(y_test, y_pred, target_names=CLASSES))
 
-def predict_with_unknown(X,threshold=0.85):
-        """
-        Predict class OR 'Unknown' depending on confidence.
-        """
-        probs = best_knn.predict_proba(X)[0]
-        max_prob = max(probs)
-        best_class = probs.argmax()
-
-        if max_prob < threshold:
-            return "Unknown", max_prob
-
-        return best_class, max_prob
-# Save model + preprocessing objects
-
-import joblib
-os.makedirs("models", exist_ok=True)
+# 7. Save
 joblib.dump({
-    'model': best_knn,
-    'scaler': scaler,
-    'pca': pca,
-    'classes': CLASSES
-}, SAVE_MODEL_PATH)
+    "model": knn,
+    "scaler": scaler,
+    "classes": CLASSES,
+    'rejection_threshold': 0.6
+}, os.path.join(MODEL_DIR, "knn_model.pkl"))
+print("k-NN model saved.")
+
+
 
