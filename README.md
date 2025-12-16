@@ -9,7 +9,7 @@ This project implements an **Automated Material Stream Identification (MSI) Syst
 ## 📁 Dataset Handling (Important!)
 
 - The dataset is **NOT included** in this repository.
-- All team members must manually place the dataset in:
+- Place the **provided dataset** (from the assignment) in a folder named `data/` at the project root:
 
 ```
 data/
@@ -38,17 +38,17 @@ pip install -r requirements.txt
 ## ▶️ How to Run
 
 ### 1. Data Augmentation  
-Generates augmented images and saves them to `final_dataset/`.
+Generates augmented images and saves them to `augmented_dataset/`.
 
 ```bash
 python src/data_augmentation.py
 ```
 
 ### 2. Feature Extraction  
-Converts images into numerical feature vectors.
+Converts each image to a fixed 1280-dimensional numerical vector using MobileNetV2 (pre-trained on ImageNet) with global average pooling.
 
 ```bash
-python src/feature_extraction.py
+# (Automatically called during training)
 ```
 
 ### 3. Train Classifiers  
@@ -60,10 +60,10 @@ python src/train_knn.py
 ```
 
 ### 4. Real-Time Application  
-Runs live camera classification.
+Processes live camera frames, applies the best-performing model, and displays predictions with "Unknown" rejection (confidence < 80%).
 
 ```bash
-python src/realtime_app.py
+python src/realtime_classification.py
 ```
 
 ---
@@ -90,7 +90,7 @@ material-stream-identification/
 │   ├── feature_extraction.py
 │   ├── train_svm.py
 │   ├── train_knn.py
-│   └── realtime_app.py
+│   └── realtime_classification.py
 ├── .gitignore
 ├── requirements.txt
 └── README.md
