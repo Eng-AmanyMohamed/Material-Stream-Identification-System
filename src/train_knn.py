@@ -65,6 +65,18 @@ print(f"\n Validation Accuracy: {val_acc:.4f}")
 print("\n Classification Report :")
 print(classification_report(y_test, y_pred, target_names=CLASSES))
 
+def predict_with_unknown(X,threshold=0.85):
+        """
+        Predict class OR 'Unknown' depending on confidence.
+        """
+        probs = best_knn.predict_proba(X)[0]
+        max_prob = max(probs)
+        best_class = probs.argmax()
+
+        if max_prob < threshold:
+            return "Unknown", max_prob
+
+        return best_class, max_prob
 # Save model + preprocessing objects
 
 import joblib
@@ -75,3 +87,4 @@ joblib.dump({
     'pca': pca,
     'classes': CLASSES
 }, SAVE_MODEL_PATH)
+
