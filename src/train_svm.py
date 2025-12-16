@@ -1,42 +1,46 @@
 import os
-import sys
-
-# Add project root to path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
 import numpy as np
+from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
+from sklearn.svm import SVC
 from sklearn.metrics import accuracy_score, classification_report
-from models.svm_model import SVMModel
-from src.feature_extraction import exctract_feature_vectors
+import joblib
+from feature_extraction import extract_features_from_dataset
 
-# Step 1 — Load features
-classes = ["glass", "paper", "cardboard", "plastic", "metal", "trash"]
-X, y = exctract_feature_vectors("data/augmented_dataset", classes)
+DATA_PATH = "data/augmented_dataset"
+CLASSES = ["glass", "paper", "cardboard", "plastic", "metal", "trash"]
+MODEL_DIR = "models"
+os.makedirs(MODEL_DIR, exist_ok=True)
 
-print("Feature vectors loaded:")
-print("X shape:", X.shape)
-print("y shape:", y.shape)
+# 1. Load features
+print("Extracting features using MobileNetV2...")
+X, y = extract_features_from_dataset(DATA_PATH, CLASSES)
+print(f"Features shape: {X.shape}")
 
-# Step 2 — Train/test split
+# 2. Preprocessing
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+# 3. Split
 X_train, X_val, y_train, y_val = train_test_split(
-    X, y, test_size=0.2, random_state=42, stratify=y
+    X_scaled, y, test_size=0.2, random_state=42, stratify=y
 )
 
-# Step 3 — Create SVM model
-svm = SVMModel(kernel="rbf", C=50, gamma="scale")
+# 4. Train SVM
+svm = SVC(kernel="rbf", C=50, gamma="scale", probability=True)
+svm.fit(X_train, y_train)
 
-# Step 4 — Train
-svm.train(X_train, y_train)
-
-# Step 5 — Validate
+# 5. Evaluate
 y_pred = svm.predict(X_val)
 acc = accuracy_score(y_val, y_pred)
+print(f"\nSVM Validation Accuracy: {acc:.4f}")
+print("\n" + classification_report(y_val, y_pred, target_names=CLASSES))
 
-print(f"\nValidation Accuracy: {acc:.4f}")
-print("\nClassification Report:")
-print(classification_report(y_val, y_pred, target_names=classes))
-
-# Step 6 — Save trained model
-svm.save("models/svm_model.pkl")
-
+# 6. Save
+joblib.dump({
+    "model": svm,
+    "scaler": scaler,
+    "classes": CLASSES,
+    'rejection_threshold': 0.8
+}, os.path.join(MODEL_DIR, "svm_model.pkl"))
+print("SVM model saved.")
