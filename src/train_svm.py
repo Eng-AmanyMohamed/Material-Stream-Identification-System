@@ -41,6 +41,6 @@ joblib.dump({
     "model": svm,
     "scaler": scaler,
     "classes": CLASSES,
-    'rejection_threshold': 0.8
+    'rejection_threshold': 0.7
 }, os.path.join(MODEL_DIR, "svm_model.pkl"))
 print("SVM model saved.")

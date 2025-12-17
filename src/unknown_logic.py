@@ -1,6 +1,6 @@
 import numpy as np
 
-def predict_with_rejection(model, X, threshold=0.85):
+def predict_with_rejection(model, X, threshold=0.7):
     """
     Generic rejection function for any scikit-learn classifier with predict_proba().
     
