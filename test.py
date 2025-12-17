@@ -17,7 +17,7 @@ def predict(dataFilePath,bestModelPath = "models/svm_model.pkl"):
     pipeline = joblib.load(bestModelPath)
     model = pipeline["model"]
     scaler = pipeline["scaler"]
-    threshold = pipeline.get("rejection_threshold", 0.8)
+    threshold = pipeline.get("rejection_threshold", 0.7)
     
     
     # 2. Load MobileNetV2 for feature extraction
