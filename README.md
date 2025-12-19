@@ -1,8 +1,12 @@
-# Material Stream Identification System  
+# 🗑️ Material Stream Identification System  
 **Machine Learning Course – Cairo University, Faculty of Computers and Artificial Intelligence**
 
 This project implements an **Automated Material Stream Identification (MSI) System** that classifies waste items from live camera input into 7 categories using classical ML techniques (SVM & k-NN). The system follows the full ML pipeline:  
 **Data Augmentation → Feature Extraction → Model Training → Real-Time Deployment**.
+
+> 🔑 **Key Design Choice**:  
+> We use **MobileNetV2 (pre-trained on ImageNet) exclusively as a fixed feature extractor** to convert images into 1280-dimensional numerical vectors.  
+> **Classification is performed solely by classical models**: **SVM (RBF kernel)** and **k-NN (distance-weighted)** — in full compliance with Section 4.3’s mandate to use "foundational ML algorithms".
 
 ---
 
@@ -83,8 +87,10 @@ python src/realtime_classification.py
 
 ```
 material-stream-identification/
-├── data/                ← (LOCAL ONLY – NOT TRACKED)
+├── data/                # ← Local only (excluded from git)
 ├── models/
+│   ├── svm_model.pkl    # Trained SVM
+│   └── knn_model.pkl    # Trained k-NN
 ├── src/
 │   ├── data_augmentation.py
 │   ├── feature_extraction.py
@@ -102,4 +108,4 @@ material-stream-identification/
 
 - Source Code Repository  
 - Trained Models (`models/*.pkl`)  
-- Technical Report (`report.pdf`)
+- Technical Report (`Report.pdf`)
