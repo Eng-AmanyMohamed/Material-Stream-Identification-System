@@ -72,6 +72,7 @@ def predict_and_export(dataFilePath, bestModelPath="models/svm_model.pkl", outpu
     print(f"Predictions exported to {output_excel}")
     
     return df
+#ق
 
 
 # Usage example:
